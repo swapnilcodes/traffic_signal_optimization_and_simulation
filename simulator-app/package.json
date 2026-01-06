@@ -6,7 +6,7 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev:react": "vite",
-    "dev:electron": "npm run transpile:electron; cross-env NODE_ENV=dev electron .",
+    "dev:electron": "npm run transpile:electron; cross-env NODE_ENV=dev MAPS_FILE=maps.json electron .",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -16,12 +16,17 @@
     "dist:linux": "npm run transpile:electron && npm run build && electron-builder --linux --x64"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
     "cross-env": "^10.1.0",
     "electron": "^39.2.7",
     "electron-builder": "^26.0.12",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.11.0"
+    "react-router-dom": "^7.11.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
