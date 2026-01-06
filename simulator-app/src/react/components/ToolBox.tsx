@@ -1,13 +1,16 @@
 import {useState} from 'react';
 import Button from '@mui/material/Button';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 
 interface ToolBoxProps {
     onAddRoad: ()=>any,
     onDeleteRoad: ()=>any,
+    onZoomIn: ()=> any,
+    onZoomOut: ()=> any
 };
 
-export default function({onAddRoad, onDeleteRoad}: ToolBoxProps){
-
+export default function({onAddRoad, onDeleteRoad, onZoomIn, onZoomOut}: ToolBoxProps){
     return (
         <div style={{
             position: 'fixed',
@@ -40,7 +43,28 @@ export default function({onAddRoad, onDeleteRoad}: ToolBoxProps){
                 }}>
                 Del Road
             </Button>
-            
+            <Button variant='outlined'
+                style = {{
+                    width: '30px',
+                    height: '50px',
+                    color: 'white',
+                    border: '1px solid green'
+                }}               
+                onClick={(e)=>onZoomIn()}
+            >
+                < ZoomInIcon/ >
+            </Button>
+            <Button variant='outlined'
+                style = {{
+                    width: '30px',
+                    height: '50px',
+                    color: 'white',
+                    border: '1px solid green'
+                }}                
+                onClick={(e)=>onZoomOut()}
+            >
+                < ZoomInIcon/ >
+            </Button>
         </div>
     );
 }
