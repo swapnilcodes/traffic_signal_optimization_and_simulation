@@ -3,6 +3,7 @@ import {useLocation} from 'react-router-dom';
 import ToolBox from '../components/ToolBox.tsx';
 import type { Map } from '../models/Map.ts';
 import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 
 interface MapEditorProps {
     map: Map
@@ -11,6 +12,7 @@ interface MapEditorProps {
 export default ()=>{
     const {map}: MapEditorProps = useLocation().state;
     const [mapData, setMap] = useState<Map>(map);
+
     
     function addRoad(){
         
@@ -23,7 +25,7 @@ export default ()=>{
     async function save(){
         const json = await window.electron.readMaps();
         let data = JSON.parse(json);
-        data[mapData.mapId] = mapData;
+        data[mapData.id] = mapData;
         await window.electron.writeMaps(JSON.stringify(data));
     }
 
@@ -31,7 +33,20 @@ export default ()=>{
         <div>
             < ToolBox onAddRoad={addRoad} onDeleteRoad={deleteRoad}/>
             <h1 style={{textAlign: 'center'}}>
-                Edit {mapData.mapName}  
+                Edit  
+                <TextField variant='standard' value={mapData.name} style={{
+                    fontSize: '20px',
+                    marginLeft: '20px'
+                }}
+                onChange={
+                    (e)=>{
+                        setMap({
+                            ...mapData,
+                            name: e.target.value
+                        });
+                    }
+                }
+                /> 
             </h1>
             <Button
                 style={{

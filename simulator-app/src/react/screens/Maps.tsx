@@ -32,8 +32,8 @@ export default function(){
 
     function newMap(){
         const map: Map = {
-            mapId: uuid(),
-            mapName: 'New Map',
+            id: uuid(),
+            name: 'New Map',
             roads: {},
             startingPoints: [],
             endingPoints: []
@@ -44,17 +44,21 @@ export default function(){
     return(
         <div style={{display: 'grid', alignItems: 'center', justifyContent: 'center'}}>
             <h1 style= {{textAlign: 'center'}}>Maps</h1>
-            <Button variant='contained' style={{}} onClick={newMap}>New Map</Button> 
+            <Button variant='contained' style={{width: '150px', height: '40px', marginBottom: '40px'}} onClick={newMap}>New Map</Button> 
             <div style={{display: 'flex', justifyContent: 'center'}}>
                 {
                     Object.entries(maps).map(([key, value])=>(
                         <div style={{
                             width: '300px', 
-                            height: '300px',
+                            height: '150px',
                             border: '1px solid black',
-                            borderRadius: '2px'
-                        }}>
-                            {value.mapName} 
+                            borderRadius: '2px',
+                            cursor: 'pointer', 
+                            fontSize: '20px',
+                            textAlign: 'center',
+                            paddingTop: '130px'
+                        }} key={key}>
+                            {value.name} 
                         </div>
                     ))
                 }
