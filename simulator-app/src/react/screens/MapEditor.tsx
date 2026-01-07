@@ -5,8 +5,9 @@ import type { Map } from '../models/Map.ts';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import type {Point} from '../models/Point.ts';
-import type {Road} from '../models/Road.ts';
+import {RoadTypes, type Road} from '../models/Road.ts';
 import HoverRoad from '../components/MapComponents/Hover/Road.tsx';
+import {v4 as uuid} from 'uuid';
 
 interface MapEditorProps {
     map: Map
@@ -26,10 +27,10 @@ export default ()=>{
         setScale(1);
         setInsertingRoad(false);
     }, []);
-    
 
-    function addRoad(){
-        setInsertingRoad(true); 
+
+    function handleCameraMove(){
+
     }
     
     function deleteRoad(){
@@ -38,8 +39,25 @@ export default ()=>{
 
     function handleRoadInsert(start: Point, end: Point){
         setInsertingRoad(false); 
-        console.log(`startX: ${start.x}, startY: ${start.y}`);
-        console.log(`endX: ${end.x}, endY: ${end.y}`);
+
+        // Calculating absolute positions
+        const absStart = {x: cameraPos.x + start.x, y: cameraPos.y + start.y}; 
+        const absEnd = {x: cameraPos.x + end.x, y: cameraPos.y + end.y};
+        
+        // Creating the road
+        const road: Road = {
+            id: uuid(),
+            name: null,
+            type: RoadTypes.SingleLane,
+            tilt: 0,
+            start: absStart,
+            end: absEnd
+        };
+        
+        // Updating the map
+        let temp = {...mapData};
+        temp.roads[road.id] = road;
+        setMap(temp);
     }
 
     async function save(){
@@ -51,7 +69,7 @@ export default ()=>{
 
     return (
         <div>
-            <ToolBox onAddRoad={addRoad} onDeleteRoad={deleteRoad}/>
+            <ToolBox onAddRoad={()=>setInsertingRoad(true)} onDeleteRoad={deleteRoad}/>
             <h1 style={{textAlign: 'center', position: 'fixed', top: '30px', left: '40vw'}}>
                 Edit  
                 <TextField variant='standard' value={mapData.name} style={{

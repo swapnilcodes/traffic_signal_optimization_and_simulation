@@ -7,8 +7,8 @@ export enum RoadTypes {
 
 
 export type Road = {
-    roadId: string,
-    roadName: string | null,
+    id: string,
+    name: string | null,
     type: RoadTypes,
     tilt: number,
     start: Point,

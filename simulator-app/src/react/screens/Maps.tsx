@@ -1,8 +1,11 @@
 import {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import Button from '@mui/material/Button';
 import type {Map} from '../models/Map.ts';
 import {v4 as uuid} from 'uuid';
+import Button from '@mui/material/Button';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CircularProgress from '@mui/material/CircularProgress';
+
 
 export default function(){
     
@@ -41,6 +44,33 @@ export default function(){
         navigate('/map_editor', {state: {map}});
     }
     
+    async function deleteMap(key: string){
+        try{
+            let temp =  { ...maps };
+            delete temp[key];
+            await window.electron.writeMaps(JSON.stringify(temp));
+            setMaps(temp);
+        }
+        catch(_){
+            setError('Failed to delete map');
+        }
+
+    }
+
+    function openMap(key: string){
+        const map = maps[key] as Map;
+        navigate('/map_editor', {state: {map}});
+    }
+
+    
+    if (loading){
+        return (
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                <CircularProgress />
+            </div>
+        );
+    }
+
     return(
         <div style={{display: 'grid', alignItems: 'center', justifyContent: 'center'}}>
             <h1 style= {{textAlign: 'center'}}>Maps</h1>
@@ -49,19 +79,37 @@ export default function(){
                 {
                     Object.entries(maps).map(([key, value])=>(
                         <div style={{
-                            width: '300px', 
-                            height: '150px',
+                            width: '200px', 
+                            height: '120px',
                             border: '1px solid black',
                             borderRadius: '2px',
                             cursor: 'pointer', 
                             fontSize: '20px',
                             textAlign: 'center',
-                            paddingTop: '130px'
-                        }} key={key}>
-                            {value.name} 
+                            paddingTop: '60px',
+                            margin: '10px 40px',
+                            zIndex: '1'
+                        }} key={key} >
+                            <div onClick={()=>openMap(key)} style={{backgroundColor: 'green', fontSize: '25px',color: 'white'}}>{value.name}</div> 
+                            <Button 
+                                variant='contained'
+                                style={{backgroundColor: 'crimson', color: 'white', marginTop:'30px'}}
+                                onClick={()=>deleteMap(key)}
+                            >
+                                < DeleteIcon / >
+                            </Button>
                         </div>
                     ))
                 }
+            </div>
+            <div 
+                style={{
+                    color: 'red',
+                    textAlign: 'center',
+                    fontSize: '23px'
+                }}
+            >
+                {error}
             </div>
         </div>
     );
