@@ -10,8 +10,9 @@ app.on('ready', () => {
             preload: getPreloadPath(),
         },
         width: 1200,
-        height: 800
+        height: 800,
     });
+    mainWindow.maximize();
     console.log(app.getPath('userData'));
     // Load localhost url if in development otherwise load static html file.
     if (isDev())

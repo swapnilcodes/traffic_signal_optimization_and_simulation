@@ -4,24 +4,29 @@ import type {Point} from '../../../models/Point';
 interface HoverRoadProps  {
     onClick: (start: Point, end: Point)=>any,
     currentScale: number,
-    viewPortSize: [number, number]
 };
 
-export default function({onClick, currentScale, viewPortSize}:HoverRoadProps){
+export default function({onClick, currentScale}:HoverRoadProps){
     // Default Width
     const width = 60;
-    const [centre, setCentre] = useState<Point>({x:0, y:0});
+    const [centre, setCentre] = useState<Point>({x: 0, y: 0});
     
     function handleMouseMove(event: MouseEvent){
-        const xPx = event.clientX;
-        const yPx = event.clientY;
-        const xPercent = ( xPx/(viewPortSize[0]/100) );
-        const yPercent = ( yPx/(viewPortSize[1]/100) ) ;
+        const xPercent = ( event.clientX/(document.documentElement.clientWidth/100) );
+        const yPercent = ( event.clientY/(document.documentElement.clientHeight/100));
+
         setCentre({x: xPercent, y: yPercent}); 
     }
 
     function handleClick(event: MouseEvent){
-        onClick({x: centre.x - width, y: centre.y}, {x: centre.x+width, y: centre.y});
+        window.removeEventListener('click', handleClick);
+        window.removeEventListener('mousemove', handleMouseMove);
+        const xPercent = (event.clientX/(document.documentElement.clientWidth/100));
+        const yPercent = (event.clientY/(document.documentElement.clientHeight/100));
+        onClick(
+            {x: xPercent - (width /2), y: yPercent - (9/2)}, 
+            {x: xPercent + (width/2), y: yPercent + (9/2)}
+        );
     }
 
     useEffect(()=>{
@@ -29,13 +34,12 @@ export default function({onClick, currentScale, viewPortSize}:HoverRoadProps){
         setTimeout(() => {
          window.addEventListener('click', handleClick);           
         }, 1000);
-        
-        // Clean Up
         return ()=>{
             window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('click', handleClick);
-        }
+            window.removeEventListener('click', handleClick);   
+        };
     }, []);
+
 
     return (
         <div style={{

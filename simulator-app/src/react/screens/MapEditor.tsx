@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect,} from 'react';
 import {useLocation} from 'react-router-dom';
 import ToolBox from '../components/ToolBox.tsx';
 import type { Map } from '../models/Map.ts';
@@ -8,10 +8,12 @@ import type {Point} from '../models/Point.ts';
 import {RoadTypes, type Road} from '../models/Road.ts';
 import HoverRoad from '../components/MapComponents/Hover/Road.tsx';
 import {v4 as uuid} from 'uuid';
+import PermanentRoad from '../components/MapComponents/Permanent/Road';
+
 
 interface MapEditorProps {
     map: Map
-}
+};
 
 export default ()=>{
     const {map}: MapEditorProps = useLocation().state;
@@ -20,6 +22,9 @@ export default ()=>{
     const [cameraPos, setCameraPos] = useState<Point>({x: 0, y: 0});
     const [scale, setScale] = useState<number>(1);
     const [insertingRoad, setInsertingRoad] = useState<boolean>(false); 
+        
+    // state variables for detecting camera movement (mouse drag).
+    const [initialMousePos, setInitialMousePos] = useState<Point>({x: -1, y: -1}); 
 
     useEffect(()=>{
         setMap(map);
@@ -29,10 +34,26 @@ export default ()=>{
     }, []);
 
 
-    function handleCameraMove(){
+    function handleCanvasDrag(e: React.MouseEvent){
+        if(initialMousePos.x === -1 || initialMousePos.y === -1) return; 
+        const percentX =  e.clientX / (document.documentElement.clientWidth/100);
+        const percentY =  e.clientY / (document.documentElement.clientHeight/100);
+        const movX = ( percentX - initialMousePos.x )/15;           
+        const movY = ( percentY - initialMousePos.y )/15; 
+        setCameraPos({x: cameraPos.x - movX, y: cameraPos.y - movY});
+    }
 
+    function handleCanvasMouseDown(e: React.MouseEvent){
+        if(initialMousePos.x !== -1 || initialMousePos.y !== -1) return;
+        const percentX = e.clientX / (document.documentElement.clientWidth/100);
+        const percentY = e.clientY / (document.documentElement.clientHeight/100);
+        setInitialMousePos({x: percentX, y: percentY});
     }
     
+    function handleCanvasMouseUp(){
+        setInitialMousePos({x: -1, y: -1});
+    }
+
     function deleteRoad(){
         
     }
@@ -65,6 +86,38 @@ export default ()=>{
         let data = JSON.parse(json);
         data[mapData.id] = mapData;
         await window.electron.writeMaps(JSON.stringify(data));
+    }
+
+    function renderRoads(){
+        const roads: ReactElement[] = []; 
+         
+        for (let roadKey in map.roads){
+            let road = map.roads[roadKey];
+            // Skipping roads which are out of bounds
+            if(road.end.x < cameraPos.x - 50 && road.end.y < cameraPos.y - 50) continue;
+            if(road.start.x > cameraPos.x + 50 && road.start.y > cameraPos.y + 50) continue;
+            
+            const relativeStart: Point = {
+                x: (road.start.x-cameraPos.x), 
+                y: (road.start.y-cameraPos.y)
+            };
+            const relativeEnd: Point = {
+                x: relativeStart.x + (road.end.x - road.start.x), 
+                y: relativeStart.y + (road.end.y - road.start.y),
+            };
+
+            let temp = {...road};
+            temp.start = relativeStart;
+            temp.end = relativeEnd;
+            
+            console.log('temp: ');
+            console.log(temp); 
+
+            let element = <PermanentRoad road={temp} key={roadKey} currentScale={scale}/>;
+            roads.push(element);
+        }  
+
+        return roads;
     }
 
     return (
@@ -100,24 +153,31 @@ export default ()=>{
             >
                 SAVE
             </Button> 
-        
-            <div style={{
-                width: '100vw',
-                height: '100vh', 
-                position: 'absolute', 
-                top:'0',
-                left: '0',
-                zIndex: '-1'
-            }}>
+            
+            <div 
+                style={{
+                    width: '100vw',
+                    height: '100vh', 
+                    position: 'absolute', 
+                    top:'0',
+                    left: '0',
+                    zIndex: '-1'
+                }}
+                onMouseDown={handleCanvasMouseDown}
+                onMouseUp={handleCanvasMouseUp}
+                onMouseMove={handleCanvasDrag}             
+            >
                 {
                    insertingRoad ? (
                        <HoverRoad
                         onClick={handleRoadInsert}
                         currentScale={scale}
-                        viewPortSize={[document.documentElement.clientWidth, document.documentElement.clientHeight]}
                        />
                     ):""
                 }  
+                {
+                    renderRoads()
+                }
             </div>
         </div>
     );
