@@ -4,18 +4,26 @@ import type {Point} from '../../../models/Point';
 interface HoverRoadProps  {
     onClick: (start: Point, end: Point)=>any,
     currentScale: number,
+    bounds?: {
+        start: Point,
+        end: Point,
+    }, 
+    tilt: 90|0 
 };
 
-export default function({onClick, currentScale}:HoverRoadProps){
+export default function({onClick, currentScale, bounds, tilt}:HoverRoadProps){
+
     // Default Width
     const width = 60;
     const [centre, setCentre] = useState<Point>({x: 0, y: 0});
-    
+
     function handleMouseMove(event: MouseEvent){
         const xPercent = ( event.clientX/(document.documentElement.clientWidth/100) );
         const yPercent = ( event.clientY/(document.documentElement.clientHeight/100));
-
-        setCentre({x: xPercent, y: yPercent}); 
+        if(!bounds) { 
+            setCentre({x: xPercent, y: yPercent}); 
+            return;
+        }
     }
 
     function handleClick(event: MouseEvent){
@@ -43,8 +51,8 @@ export default function({onClick, currentScale}:HoverRoadProps){
 
     return (
         <div style={{
-            width: `${( width * currentScale )}%`, 
-            height: `${9 * currentScale}%`,
+            width: tilt===0?`${( width * currentScale )}%` : `6%`, 
+            height: tilt === 0 ? `${9 * currentScale}%` : `60%`,
             position: 'fixed',
             top: `${centre.y}%`,
             left: `${centre.x - (width/2)}%`,

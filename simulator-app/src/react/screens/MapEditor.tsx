@@ -11,7 +11,7 @@ import {v4 as uuid} from 'uuid';
 import PermanentRoad from '../components/MapComponents/Permanent/Road';
 import type {ReactElement} from 'react';
 import PropertiesBar from '../components/RoadPropertiesBar.tsx';
-import {addRoadAbove, rotateRoadBlock} from '../services/mapMaking';
+import {addRoadAbove, rotateRoadBlock, insertNewRoad, addRoadBelow, addRoadToLeft, addRoadToRight} from '../services/mapMaking';
 
 
 interface MapEditorProps {
@@ -30,7 +30,7 @@ export default ()=>{
         
     // state variables for detecting camera movement (mouse drag).
     const [initialMousePos, setInitialMousePos] = useState<Point>({x: -1, y: -1}); 
-
+    
     useEffect(()=>{
         setMap(propMap);
         setCameraPos({x: 0, y: 0});
@@ -54,12 +54,9 @@ export default ()=>{
         const percentY = e.clientY / (document.documentElement.clientHeight/100);
         setInitialMousePos({x: percentX, y: percentY});
     }
-    
     function handleCanvasMouseUp(){
         setInitialMousePos({x: -1, y: -1});
     }
-
-
 
     function handleRoadInsert(start: Point, end: Point){
         setInsertingRoad(false); 
@@ -79,20 +76,11 @@ export default ()=>{
         };
         
         // Updating the map
-        let temp = {...map};
-        temp.roads[road.id] = road;
-        setMap(temp);
+        setMap(insertNewRoad({...map}, road));
     }
 
     function deleteRoad(){
         
-    }
-
-    async function save(){
-        const json = await window.electron.readMaps();
-        let data = JSON.parse(json);
-        data[map.id] = map;
-        await window.electron.writeMaps(JSON.stringify(data));
     }
 
     async function createNewRoadAbove(road: Road){
@@ -104,18 +92,25 @@ export default ()=>{
             type: RoadTypes.SingleLane,
             end: {
                 x: ( road.start.x + (width/2) ) ,
-                y: road.start.y - 1,
+                y: road.start.y,
             },
             start: {
                 x: road.start.x + (width/2) - 6,
-                y: road.start.y - 61,
+                y: road.start.y - 60,
             }
         };
-        console.log(road);
-        console.log(newRoad);
         setMap(addRoadAbove(map, road.id, newRoad));
     }
 
+
+    // Updates the road in the map and then updates the state 
+    function updateRoad(road: Road){
+        let temp = {...map};
+        temp.roads[road.id] = road;
+        setMap(temp);
+    }
+    
+    // Renders road on the screen.
     function renderRoads(){
         const roads: ReactElement[] = []; 
          
@@ -124,7 +119,7 @@ export default ()=>{
             // Skipping roads which are out of bounds
             if(road.end.x < cameraPos.x - 50 && road.end.y < cameraPos.y - 50) continue;
             if(road.start.x > cameraPos.x + 50 && road.start.y > cameraPos.y + 50) continue;
-            
+                    
             const relativeStart: Point = {
                 x: (road.start.x-cameraPos.x), 
                 y: (road.start.y-cameraPos.y)
@@ -143,7 +138,7 @@ export default ()=>{
                     road={temp}
                     key={roadKey}
                     currentScale={scale}
-                    rotate={handleRoadRotate}
+                    rotate={()=>setMap(rotateRoadBlock({...map}, road.id))}
                     addRoadUp={()=>createNewRoadAbove(road)}
                     addRoadDown={()=>createNewRoadBelow(road)}
                     addRoadLeft={()=>createNewRoadLeft(road)}
@@ -153,29 +148,24 @@ export default ()=>{
                     }}
                 />
             );
+
             roads.push(element);
         }  
 
         return roads;
-    }
+    }    
 
-    function handleRoadRotate(roadId: string){
-        let temp = rotateRoadBlock(map, roadId); 
-        console.log(temp);
-        setMap(temp);
+    async function save(){
+        const json = await window.electron.readMaps();
+        let data = JSON.parse(json);
+        data[map.id] = map;
+        await window.electron.writeMaps(JSON.stringify(data));
     }
-    
-    function updateRoad(road: Road){
-        let temp = {...map};
-        temp.roads[road.id] = road;
-        setMap(temp);
-    }
-        
     return (
         <div>
             <h3 style={{position: 'absolute', top: "10px", left: '10px'}}>Camera Pos x: {cameraPos.x} y: {cameraPos.y}</h3>
             <ToolBox onAddRoad={()=>setInsertingRoad(true)} onDeleteRoad={deleteRoad}/>
-            <PropertiesBar selectedRoad={selectedRoad} onValChange={updateRoad} rotateRoad={handleRoadRotate}/>
+            <PropertiesBar selectedRoad={selectedRoad} onValChange={updateRoad} rotateRoad={()=>selectedRoad?setMap(rotateRoadBlock({...map}, selectedRoad.id)):undefined }/>
             <h1 style={{textAlign: 'center', position: 'fixed', top: '30px', left: '40vw'}}>
                 Edit  
                 <TextField variant='standard' value={map.name} style={{
