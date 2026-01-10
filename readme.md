@@ -24,3 +24,9 @@ Test traffic light controlling algorithms using the aforementioned simulations.
 
 Tech stack: React ts, electron, google maps api.
 Hardware: esp32, rs485 relay board. 
+
+to start the desktop app:
+go to the simulator-app folder and run:
+npm run dev:react
+In another tab run:
+npm run dev:electron
