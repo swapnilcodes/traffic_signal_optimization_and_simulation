@@ -11,7 +11,6 @@ import {v4 as uuid} from 'uuid';
 import PermanentRoad from '../components/MapComponents/Permanent/Road';
 import type {ReactElement} from 'react';
 import PropertiesBar from '../components/RoadPropertiesBar.tsx';
-import {addRoadAbove, rotateRoadBlock} from '../services/mapMaking';
 
 
 interface MapEditorProps {
@@ -95,27 +94,6 @@ export default ()=>{
         await window.electron.writeMaps(JSON.stringify(data));
     }
 
-    async function createNewRoadAbove(road: Road){
-        const width = road.end.x - road.start.x;
-        const newRoad: Road = {
-            id: uuid(),
-            name: null,
-            tilt: 0,
-            type: RoadTypes.SingleLane,
-            end: {
-                x: ( road.start.x + (width/2) ) ,
-                y: road.start.y - 1,
-            },
-            start: {
-                x: road.start.x + (width/2) - 6,
-                y: road.start.y - 61,
-            }
-        };
-        console.log(road);
-        console.log(newRoad);
-        setMap(addRoadAbove(map, road.id, newRoad));
-    }
-
     function renderRoads(){
         const roads: ReactElement[] = []; 
          
@@ -137,45 +115,34 @@ export default ()=>{
             let temp = {...road};
             temp.start = relativeStart;
             temp.end = relativeEnd;
+            
+            console.log('temp: ');
+            console.log(temp); 
 
-            let element = (
-                <PermanentRoad
-                    road={temp}
-                    key={roadKey}
-                    currentScale={scale}
-                    rotate={handleRoadRotate}
-                    addRoadUp={()=>createNewRoadAbove(road)}
-                    addRoadDown={()=>createNewRoadBelow(road)}
-                    addRoadLeft={()=>createNewRoadLeft(road)}
-                    addRoadRight={()=>createNewRoadRight(road)}
-                    onSelect={()=>{ 
-                        setSelectedRoad(road);
-                    }}
-                />
-            );
+            let element = <PermanentRoad road={temp} key={roadKey} currentScale={scale} rotate={rotateRoad}/>;
             roads.push(element);
         }  
 
         return roads;
     }
 
-    function handleRoadRotate(roadId: string){
-        let temp = rotateRoadBlock(map, roadId); 
-        console.log(temp);
-        setMap(temp);
-    }
-    
-    function updateRoad(road: Road){
+    function rotateRoad(roadId: string){
         let temp = {...map};
-        temp.roads[road.id] = road;
+        if(temp.roads[roadId].tilt >= 270)
+            temp.roads[roadId].tilt = 0;
+        else
+            temp.roads[roadId].tilt += 90;
         setMap(temp);
     }
+
+    function handlePropertyChange(changedRoad: Road){
         
+    }    
+
     return (
         <div>
-            <h3 style={{position: 'absolute', top: "10px", left: '10px'}}>Camera Pos x: {cameraPos.x} y: {cameraPos.y}</h3>
             <ToolBox onAddRoad={()=>setInsertingRoad(true)} onDeleteRoad={deleteRoad}/>
-            <PropertiesBar selectedRoad={selectedRoad} onValChange={updateRoad} rotateRoad={handleRoadRotate}/>
+            <PropertiesBar selectedObject={selectedRoad} onValChange={handlePropertyChange}/>
             <h1 style={{textAlign: 'center', position: 'fixed', top: '30px', left: '40vw'}}>
                 Edit  
                 <TextField variant='standard' value={map.name} style={{

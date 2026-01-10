@@ -4,20 +4,31 @@ import type {Road} from '../../../models/Road';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import Button from '@mui/material/Button';
 
+
 // Must provide relative co-ordinates
 interface RoadProps {
-    road: Road,
+    road: Road
     currentScale: number,
     addRoadLeft: (roadId: string)=>void
     addRoadUp: (roadId: string)=>void
     addRoadRight: (roadId: string)=>void
     addRoadDown: (roadId: string)=>void
+    rotate: (roadId: string) => void 
+    onSelect: ()=>void
 };
 
-export default function({road, currentScale, addRoadLeft, addRoadUp, addRoadRight, addRoadDown}: RoadProps){
-    console.log (`y: ${road.start.y}`);
-    const width = Math.abs( ( road.end.x  ) - ( road.start.x  ) ) * currentScale;
-    const height = 9 * currentScale;
+export default function({
+    road,
+    currentScale,
+    addRoadLeft,
+    addRoadUp,
+    addRoadRight,
+    addRoadDown,
+    onSelect
+}: RoadProps){
+
+    const width = Math.abs(road.end.x - road.start.x) * currentScale;
+    const height = Math.abs(road.end.y - road.start.y) * currentScale;
         
     return (
         <div
@@ -28,8 +39,10 @@ export default function({road, currentScale, addRoadLeft, addRoadUp, addRoadRigh
                 width: `${width}%`,
                 height: `${height}%`, 
                 backgroundColor: 'rgb(40, 40, 40)',
-                transform: `rotate(${road.tilt}deg)`
+                transform: `rotate(${road.tilt}deg)`,
+                cursor: 'pointer'
             }}
+            onClick={onSelect}
             id='permanent_road'
         >
             <Button

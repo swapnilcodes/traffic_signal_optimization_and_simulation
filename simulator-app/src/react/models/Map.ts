@@ -1,5 +1,4 @@
 import type { Road } from "./Road"
-import type {Point} from './Point';
 
 export type Map = {
     name: string,
@@ -8,6 +7,4 @@ export type Map = {
     roads: {
         [key: string]: Road
     }
-    startingPoints: Point[],
-    endingPoints: Point[]
 };

@@ -13,9 +13,11 @@ export type Road = {
     tilt: number,
     start: Point,
     end: Point,
-    left?: Road,
-    right?: Road,
-    up?: Road,
-    down?: Road
+    left?: string, // Road id 
+    right?: string,
+    up?: string,
+    down?: string,
+    startingPoint?: Point,
+    endingPoint?: Point,
 }
 

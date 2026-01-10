@@ -14,14 +14,13 @@ export default function(){
     const navigate = useNavigate();    
     const [value, setValue] = useState<string>('404'); 
     
-
     useEffect(()=>{
         let basePath = '/' + location.pathname.split('/')[0];
         setValue(basePath);
     }, [])
 
     return (
-        <Box sx={{ width: '100vw', position: "fixed", bottom: '0' }}>
+        <Box sx={{ width: '100vw', position: "fixed", bottom: '0',  }}>
           <BottomNavigation
             showLabels
             value='value'
@@ -29,10 +28,18 @@ export default function(){
                 navigate(newValue);  
                 setValue(newValue);
             }}
+            
+            style={{height: '100px'}}
           >
-            <BottomNavigationAction label="Maps" icon={<MapIcon />} value= '/' />
-            <BottomNavigationAction label="Cars" icon={<DirectionsCarIcon />} value='/cars' />
-            <BottomNavigationAction label="Traffic" icon={<TrafficIcon />} value='/traffic'/>
+            <BottomNavigationAction label="Maps" icon={<MapIcon />} value= '/' style={{
+                width: '100px', height: '100%', fontSize: '20px'
+            }} />
+            <BottomNavigationAction label="Cars" icon={<DirectionsCarIcon />} value='/cars' style={{
+                width: '100px', height: '100%', fontSize: '20px'
+            }}/>
+            <BottomNavigationAction label="Traffic" icon={<TrafficIcon />} value='/traffic' style={{
+                width: '100px', height: '100%', fontSize: '20px'
+            }}/>
           </BottomNavigation>
         </Box>
     );
