@@ -178,19 +178,19 @@ function changeRoadType(map: Map, roadId: string): Map{
 function calculatePossibleBoundsForRoad(
     map: Map,
     road: Road,
-): [Point, Point]{
+): {start: Point, end: Point}{
     // If the road has no neighbours it can move freely
     if(!(
         road.left || road.right || road.down || road.up
     ))
-        return [{x: 100, y: 100}, {x: 100, y: 100}];
+        return {start: {x: 0, y: 0},end: {x: 100, y: 100}};
 
     // If the road has neighbours horizontally as well as vertically it cant move at all.
     if(
         (road.left || road.right) &&
         (road.up || road.down)
     ) 
-        return [road.start, road.end];
+    return {start: road.start, end: road.end}
     
     // If the road has neighbours horizontally Only Y can be changed
     if(road.left || road.right){
@@ -212,7 +212,7 @@ function calculatePossibleBoundsForRoad(
                 roadRight ? roadRight.end.y : Number.MAX_VALUE
             )
         };
-        return [resStart, resEnd];
+        return {start: resStart, end: resEnd};
     }
 
     // If the road has neighbours vertically. Only x can be changed
@@ -225,6 +225,7 @@ function calculatePossibleBoundsForRoad(
         ),
         y: road.start.y
     };
+
     let resEnd: Point = {
         x: Math.min(
             roadDown ? roadDown.end.x : Number.MAX_VALUE,
@@ -233,7 +234,7 @@ function calculatePossibleBoundsForRoad(
         y: road.end.y
     };
 
-    return [resStart, resEnd];
+    return {start: resStart, end: resEnd};
 }
 
 export {
@@ -244,6 +245,7 @@ export {
     addRoadToLeft,
     addRoadAbove, 
     addRoadBelow,
-    changeRoadType
+    changeRoadType, 
+    calculatePossibleBoundsForRoad
 };
 

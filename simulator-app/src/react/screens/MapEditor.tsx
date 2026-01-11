@@ -11,7 +11,7 @@ import {v4 as uuid} from 'uuid';
 import PermanentRoad from '../components/MapComponents/Permanent/Road';
 import type {ReactElement} from 'react';
 import PropertiesBar from '../components/RoadPropertiesBar.tsx';
-import {addRoadAbove, rotateRoadBlock, insertNewRoad, addRoadBelow, addRoadToLeft, addRoadToRight} from '../services/mapMaking';
+import {addRoadAbove, rotateRoadBlock, insertNewRoad, addRoadBelow, addRoadToLeft, addRoadToRight, calculatePossibleBoundsForRoad} from '../services/mapMaking';
 
 
 interface MapEditorProps {
@@ -24,8 +24,12 @@ export default ()=>{
     const [map, setMap] = useState<Map>(propMap);
     const [cameraPos, setCameraPos] = useState<Point>({x: 0, y: 0});
     const [scale, setScale] = useState<number>(1);
+
+    // Hover Road Properties
     const [insertingRoad, setInsertingRoad] = useState<boolean>(false); 
-    
+    const [hoverRoadTilt, setHoverRoadTilt] = useState<90 | 0>(0);
+    const [hoverRoadBounds, setHoverRoadBounds] = useState<{start: Point, end: Point} | undefined>() 
+
     const [selectedRoad, setSelectedRoad] = useState<Road>();
         
     // state variables for detecting camera movement (mouse drag).
@@ -36,6 +40,8 @@ export default ()=>{
         setCameraPos({x: 0, y: 0});
         setScale(1);
         setInsertingRoad(false);
+        setHoverRoadTilt(0);
+        setHoverRoadBounds(undefined);
     }, []);
 
 
@@ -58,8 +64,10 @@ export default ()=>{
         setInitialMousePos({x: -1, y: -1});
     }
 
-    function handleRoadInsert(start: Point, end: Point){
+    function handleRoadInsert(start: Point, end: Point, tilt: number){
         setInsertingRoad(false); 
+        setHoverRoadTilt(0);
+        setHoverRoadBounds(undefined);
 
         // Calculating absolute positions
         const absStart = {x: cameraPos.x + start.x, y: cameraPos.y + start.y}; 
@@ -70,7 +78,7 @@ export default ()=>{
             id: uuid(),
             name: null,
             type: RoadTypes.SingleLane,
-            tilt: 0,
+            tilt: tilt,
             start: absStart,
             end: absEnd
         };
@@ -83,9 +91,9 @@ export default ()=>{
         
     }
 
-    async function createNewRoadAbove(road: Road){
+    function createNewRoadAbove(road: Road){
         const width = road.end.x - road.start.x;
-        const newRoad: Road = {
+        const tempRoad: Road = {
             id: uuid(),
             name: null,
             tilt: 0,
@@ -97,9 +105,22 @@ export default ()=>{
             start: {
                 x: road.start.x + (width/2) - 6,
                 y: road.start.y - 60,
-            }
+            },
+            down: road.id
         };
-        setMap(addRoadAbove(map, road.id, newRoad));
+        setHoverRoadTilt(90); 
+        const bounds = calculatePossibleBoundsForRoad(map, tempRoad); 
+        setHoverRoadBounds( {
+            start: {
+                x: cameraPos.x + bounds.start.x,
+                y: cameraPos.x + bounds.start.y
+            },
+            end: {
+                x: cameraPos.x + bounds.end.x,
+                y: cameraPos.x + bounds.end.y
+            }
+        });
+        setInsertingRoad(true);
     }
 
 
@@ -215,6 +236,8 @@ export default ()=>{
                        <HoverRoad
                         onClick={handleRoadInsert}
                         currentScale={scale}
+                        tilt={hoverRoadTilt}
+                        bounds={hoverRoadBounds}
                        />
                     ):""
                 }  
